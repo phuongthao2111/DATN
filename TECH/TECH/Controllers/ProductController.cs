@@ -112,7 +112,6 @@ namespace TECH.Controllers
                 if (model != null && !string.IsNullOrEmpty(model.name))
                 {
                   
-
                     if (model.category_id.HasValue && model.category_id.Value > 0)
                     {
                         var category = _categoryService.GetByid(model.category_id.Value);

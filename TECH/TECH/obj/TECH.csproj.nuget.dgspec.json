@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\ĐATN\\DA\\TECH\\TECH\\TECH.csproj": {}
+    "E:\\ĐATN\\DA\\TH_New\\TH_New\\TECH\\TECH\\TECH.csproj": {}
   },
   "projects": {
-    "E:\\ĐATN\\DA\\TECH\\TECH\\TECH.csproj": {
+    "E:\\ĐATN\\DA\\TH_New\\TH_New\\TECH\\TECH\\TECH.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\ĐATN\\DA\\TECH\\TECH\\TECH.csproj",
+        "projectUniqueName": "E:\\ĐATN\\DA\\TH_New\\TH_New\\TECH\\TECH\\TECH.csproj",
         "projectName": "TECH",
-        "projectPath": "E:\\ĐATN\\DA\\TECH\\TECH\\TECH.csproj",
+        "projectPath": "E:\\ĐATN\\DA\\TH_New\\TH_New\\TECH\\TECH\\TECH.csproj",
         "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
-        "outputPath": "E:\\ĐATN\\DA\\TECH\\TECH\\obj\\",
+        "outputPath": "E:\\ĐATN\\DA\\TH_New\\TH_New\\TECH\\TECH\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",

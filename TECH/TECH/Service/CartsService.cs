@@ -18,6 +18,7 @@ namespace TECH.Service
         bool Deleted(int id);
         bool IsExist(int user_id, int product_id);
         void Save();
+        CartsModelView GetProductCart(int user_id, int product_id);
         List<CartsModelView> GetAllCart(int user_id);
         CartsModelView GetById(int id);
     }
@@ -31,6 +32,20 @@ namespace TECH.Service
         {
             _cartsRepository = cartsRepository;
             _unitOfWork = unitOfWork;
+        }
+        public CartsModelView GetProductCart(int user_id, int product_id)
+        {
+            var data = _cartsRepository.FindAll().Where(p => p.user_id == user_id && p.product_id == product_id).Select(c => new CartsModelView()
+            {
+                id = c.id,
+                user_id = c.user_id,
+                product_id = c.product_id,
+                //color = c.color,
+                price = c.price,
+                //sizeId = c.sizeId,
+                quantity = c.quantity
+            }).FirstOrDefault();
+            return data;
         }
         public bool IsExist(int user_id, int product_id)
         {

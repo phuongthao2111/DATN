@@ -92,7 +92,7 @@
     // Quantity start
     self.InitQuantity = function () {
         /*self.GetColor();*/
-        self.GetSize();
+        //self.GetSize();
         $(".btn-create-row-quantity").click(function () {
             var html = self.AddRowHtml();
             $("#quantity #tblData").append(html);
@@ -331,23 +331,23 @@
     //    });
     //};
 
-    self.GetSize = function () {
-        $.ajax({
-            url: '/Admin/Sizes/GetAll',
-            type: 'GET',
-            dataType: 'json',
-            beforeSend: function () {
-            },
-            complete: function () {
-            },
-            success: function (response) {
-                if (response.Data != null && response.Data.length > 0) {
-                    self.Sizes = response.Data;
-                }
-            }
-        });
+    //self.GetSize = function () {
+    //    $.ajax({
+    //        url: '/Admin/Sizes/GetAll',
+    //        type: 'GET',
+    //        dataType: 'json',
+    //        beforeSend: function () {
+    //        },
+    //        complete: function () {
+    //        },
+    //        success: function (response) {
+    //            if (response.Data != null && response.Data.length > 0) {
+    //                self.Sizes = response.Data;
+    //            }
+    //        }
+    //    });
 
-    };
+    //};
 
     self.AddQuantity = function (_quantities) {
         $.ajax({

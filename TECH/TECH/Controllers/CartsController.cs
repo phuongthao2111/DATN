@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Net.Mail;
@@ -55,30 +56,18 @@ namespace TECH.Controllers
                 user = JsonConvert.DeserializeObject<UserModelView>(userString);
                 OrdersModelView.user_id = user.id;
                 OrdersModelView.code = "MDH00" + user.id.ToString() + DateTime.Now.Second.ToString();
-                var result = _ordersService.AddOrder(OrdersModelView);             
 
-                if (result > 0)
+                var model = _cartsService.GetAllCart(user.id);
+                if (OrdersModelView.payment == 2)
                 {
-                    var model = _cartsService.GetAllCart(user.id);
+                    _httpContextAccessor.HttpContext.Session.SetString("OrdersModelView", JsonConvert.SerializeObject(OrdersModelView));
                     if (model != null && model.Count > 0)
                     {
                         decimal totalprice = 0;
                         foreach (var item in model)
                         {
-                            totalprice += item.price.HasValue && item.price.Value > 0? item.price.Value: 0;
-                            var ordersDetailModelView = new OrdersDetailModelView();
-                            ordersDetailModelView.order_id = result;
-                            ordersDetailModelView.product_id = item.product_id;                            
-                            //ordersDetailModelView.color = item.color;
-                            //ordersDetailModelView.sizeId = item.sizeId;
-                            var product = _productsService.GetByid(item.product_id.Value);
-                            ordersDetailModelView.price = Convert.ToInt32(product.price_sell);
-                            ordersDetailModelView.quantity = item.quantity;
-                            _ordersService.AddOrderDetail(ordersDetailModelView);
-                            _cartsService.Deleted(item.id);
-                            //_ordersService.Save();
+                            totalprice += item.price.HasValue && item.price.Value > 0 ? item.price.Value : 0;
                         }
-
                         var vnPayModel = new VnPaymentRequestModel
                         {
                             Amount = totalprice,
@@ -87,11 +76,7 @@ namespace TECH.Controllers
                             FullName = user.full_name,
                             OrderId = OrdersModelView.code
                         };
-                        string htmlvpn = "";
-                        if (OrdersModelView.payment == 2)
-                        {
-                            htmlvpn = _vnPayservice.CreatePaymentUrl(HttpContext, vnPayModel);
-                        }                       
+                        string htmlvpn = _vnPayservice.CreatePaymentUrl(HttpContext, vnPayModel);
                         return Json(new
                         {
                             success = true,
@@ -99,7 +84,52 @@ namespace TECH.Controllers
                         });
                     }
                 }
+                else
+                {
+                    var result = _ordersService.AddOrder(OrdersModelView);
 
+                    if (result > 0)
+                    {
+                        //var model = _cartsService.GetAllCart(user.id);
+                        if (model != null && model.Count > 0)
+                        {
+                            decimal totalprice = 0;
+                            foreach (var item in model)
+                            {
+                                totalprice += item.price.HasValue && item.price.Value > 0 ? item.price.Value : 0;
+                                var ordersDetailModelView = new OrdersDetailModelView();
+                                ordersDetailModelView.order_id = result;
+                                ordersDetailModelView.product_id = item.product_id;
+                                //ordersDetailModelView.color = item.color;
+                                //ordersDetailModelView.sizeId = item.sizeId;
+                                var product = _productsService.GetByid(item.product_id.Value);
+                                ordersDetailModelView.price = Convert.ToInt32(product.price_sell);
+                                ordersDetailModelView.quantity = item.quantity;
+                                _ordersService.AddOrderDetail(ordersDetailModelView);
+                                _cartsService.Deleted(item.id);
+                                //_ordersService.Save();
+                            }
+
+                            //var vnPayModel = new VnPaymentRequestModel
+                            //{
+                            //    Amount = totalprice,
+                            //    CreatedDate = DateTime.Now,
+                            //    Description = $"{user.full_name} {user.phone_number}",
+                            //    FullName = user.full_name,
+                            //    OrderId = OrdersModelView.code
+                            //};
+                            //string htmlvpn = "";
+                            //if (OrdersModelView.payment == 2)
+                            //{
+                            //    htmlvpn = _vnPayservice.CreatePaymentUrl(HttpContext, vnPayModel);
+                            //}                       
+                            return Json(new
+                            {
+                                success = true,
+                            });
+                        }
+                    }
+                }
             }
 
             return Json(new
@@ -465,9 +495,6 @@ namespace TECH.Controllers
             });
         }
 
-
-
-
         [HttpPost]
         public JsonResult Add(CartsModelView cartsModelView)
         {
@@ -487,44 +514,24 @@ namespace TECH.Controllers
                     // thực hiện trừ đi trong database
                     if (cartsModelView.product_id.HasValue && cartsModelView.product_id.Value > 0)
                     {
-                        //var quantityServer = _productQuantityService.GetQuantityByProductIdSizeId(cartsModelView.product_id.Value, cartsModelView.sizeId.Value);
-                        //if (quantityServer != null && quantityServer.TotalImported.HasValue && quantityServer.TotalImported.Value > 0)
-                        //{
-                        //    int tongsoluong = quantityServer.TotalImported.Value;
-                        //    int soluongban = 0;
-                        //    int soluongcon = 0;
-                        //    if (quantityServer.TotalSell.HasValue && quantityServer.TotalSell.Value > 0)
-                        //    {
-                        //        soluongban = quantityServer.TotalSell.Value;
-                        //    }
-                        //    soluongcon = tongsoluong - soluongban;
-                        //    tongsocon = soluongcon;
-                        //    if (soluongcon > 0 && cartsModelView.quantity.HasValue && cartsModelView.quantity.Value > soluongcon)
-                        //    {                               
-                        //        overstock = true;
-                        //        return Json(new
-                        //        {
-                        //            success = false,
-                        //            overstock = overstock,
-                        //            tongsoconlai = tongsocon
-                        //        });
-                        //    }
-                        //    else
-                        //    {
-                        //        quantityServer.TotalSell += cartsModelView.quantity.Value;
-                        //        _productQuantityService.UpdateTotal(quantityServer);
-                        //        _cartsService.Add(cartsModelView);
-                        //        _cartsService.Save();
-                        //        return Json(new
-                        //        {
-                        //            success = true,
-                        //            overstock = overstock,
-                        //            tongsoconlai = tongsocon
-                        //        });
-                        //    }
-
-                        //}
-                        _cartsService.Add(cartsModelView);
+                        var productExist = _cartsService.GetProductCart(user.id, cartsModelView.product_id.Value);
+                        if (productExist != null && productExist.quantity.HasValue && productExist.quantity.Value > 0)
+                        {
+                            var qtyServer = productExist.quantity.Value + cartsModelView.quantity.Value;
+                            var product = _productsService.GetByid(cartsModelView.product_id.Value);
+                            var price = productExist.price;
+                            if (product != null && product.price_sell.HasValue && product.price_sell.Value > 0)
+                            {
+                                price = productExist.price + cartsModelView.quantity.Value * product.price_sell.Value;
+                            }
+                            productExist.price = price;
+                            productExist.quantity = qtyServer;
+                            _cartsService.Update(productExist);
+                        }
+                        else
+                        {
+                            _cartsService.Add(cartsModelView);
+                        }
                         _cartsService.Save();
                         return Json(new
                         {
@@ -543,6 +550,71 @@ namespace TECH.Controllers
                 tongsoconlai = -1
             });
         }
+
+        
+        public IActionResult PaymentCallBack(string vnp_Amount, string vnp_BankCode, string vnp_BankTranNo, string vnp_CardType, string vnp_OrderInfo, string vnp_PayDate, string vnp_ResponseCode, string vnp_TmnCode, string vnp_TransactionNo,
+            string vnp_TransactionStatus, string vnp_TxnRef, string vnp_SecureHash)
+        {
+            var response = _vnPayservice.PaymentExecute(Request.Query);
+            string Message = "";
+            if (response == null || vnp_ResponseCode != "00")
+            {
+                //Message = $"Lỗi thanh toán VN Pay: {response.VnPayResponseCode}";
+                Message = "Thanh toán không thành công";
+                TempData["Message"] = Message;
+                return View();
+            }
+            
+            var data = _httpContextAccessor.HttpContext.Session.GetString("OrdersModelView");
+            if (data != null)
+            {
+              var dataConvert = JsonConvert.DeserializeObject<OrdersModelView>(data);
+                if (dataConvert != null)
+                {
+                    var userString = _httpContextAccessor.HttpContext.Session.GetString("UserInfor");
+                    var user = new UserModelView();
+                    var model = new List<CartsModelView>();
+                    if (userString != null)
+                    {
+                        user = JsonConvert.DeserializeObject<UserModelView>(userString);
+
+                        model = _cartsService.GetAllCart(user.id);
+                    }
+
+                   var result = _ordersService.AddOrder(dataConvert);
+
+                    if (result > 0)
+                    {
+                        //var model = _cartsService.GetAllCart(user.id);
+                        if (model != null && model.Count > 0)
+                        {
+                            decimal totalprice = 0;
+                            foreach (var item in model)
+                            {
+                                totalprice += item.price.HasValue && item.price.Value > 0 ? item.price.Value : 0;
+                                var ordersDetailModelView = new OrdersDetailModelView();
+                                ordersDetailModelView.order_id = result;
+                                ordersDetailModelView.product_id = item.product_id;
+                                //ordersDetailModelView.color = item.color;
+                                //ordersDetailModelView.sizeId = item.sizeId;
+                                var product = _productsService.GetByid(item.product_id.Value);
+                                ordersDetailModelView.price = Convert.ToInt32(product.price_sell);
+                                ordersDetailModelView.quantity = item.quantity;
+                                _ordersService.AddOrderDetail(ordersDetailModelView);
+                                _cartsService.Deleted(item.id);
+                                //_ordersService.Save();
+                            }
+                            _httpContextAccessor.HttpContext.Session.Remove("OrdersModelView");
+                            Message = "Thanh toán thành công";
+                        }
+                    }
+                }
+            }
+            TempData["Message"] = Message;
+            return View();
+        }
+
+
 
         [HttpPost]
         public JsonResult Update(CartsModelView cartsModelView)

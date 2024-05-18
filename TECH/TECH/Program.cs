@@ -303,6 +303,11 @@ defaults: new { controller = "Users", action = "Accuracy" });
     pattern: "/tao-mat-khau-moi",
     defaults: new { controller = "Users", action = "ChangeNewPassWord" });
 
+//    endpoints.MapControllerRoute(
+//name: "thanhtoanrepon",
+//pattern: "/thanh-toan-responsive",
+//defaults: new { controller = "Carts", action = "ChangeNewPassWord" });
+
 
     endpoints.MapControllerRoute(
         name: "default",
